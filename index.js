@@ -105,7 +105,7 @@ async function getCatPictures(event) {
   const cat = craftInfoDump(jsonInfo)
   infoDump.appendChild(cat)
 }
-//breedSelect.addEventListener("click", getCatPictures);
+//breedSelect.addEventListener("change", getCatPictures);
 
 /**
  * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."

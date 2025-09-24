@@ -78,7 +78,7 @@ async function getCatPictures(event) {
   infoDump.appendChild(cat)
 }
 
-breedSelect.addEventListener("click", getCatPictures);
+breedSelect.addEventListener("change", getCatPictures);
 
 function craftInfoDump(info) {
   while(infoDump.firstChild){
@@ -136,7 +136,7 @@ axios.interceptors.response.use(res => {
  *   with for future projects.
  */
 async function updateProgress(progEvt){
-
+console.log(progEvt)
 }
 /**
  * 7. As a final element of progress indication, add the following to your axios interceptors:
