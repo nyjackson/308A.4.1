@@ -58,7 +58,6 @@ async function getCatInfo(id) {
   }
 }
 
-
 function craftInfoDump(info) {
   while (infoDump.firstChild) {
     infoDump.removeChild(infoDump.firstChild);
@@ -199,7 +198,13 @@ async function updateProgress(progEvt) {
  * - You can call this function by clicking on the heart at the top right of any image.
  */
 export async function favourite(imgId) {
-  // your code here
+  const allFaves = await axios("/favourites");
+  const jsonCats = allFaves.data;
+  for (let i = 0; i < jsonCats.length; i++) {
+    if (jsonCats[i].image_id == imgId) {
+      let del = await axios.delete(`/favourites/${jsonCats[i].id}`);
+    }
+  }
   let fav = await axios.post("/favourites", { image_id: imgId });
   console.log(fav);
 }
@@ -230,6 +235,17 @@ async function getFavorites() {
   }
   start();
 }
+
+async function clearFavorites() {
+  const allFaves = await axios("/favourites");
+  const jsonCats = allFaves.data;
+  for (let i = 0; i < jsonCats.length; i++) {
+    console.log(jsonCats[i]);
+    await axios.delete(`/favourites/${jsonCats[i].id}`);
+  }
+}
+
+//clearFavorites()
 /**
  * 10. Test your site, thoroughly!
  * - What happens when you try to load the Malayan breed?
