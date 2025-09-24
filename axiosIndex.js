@@ -105,6 +105,7 @@ axios.interceptors.request.use(req => {
     req.metadata = req.metadata || {}
     req.metadata.startTime = new Date().getTime()
     progressBar.style.width = "0%"
+    document.body.style.cursor = "progress"
     return req
 });
 axios.interceptors.response.use(res => {
@@ -112,6 +113,8 @@ axios.interceptors.response.use(res => {
     res.config.metadata.endTime = new Date().getTime()
     res.config.metadata.durationInMS = new Date().getTime() - res.config.metadata.startTime
     console.log(`The request took ${res.config.metadata.durationInMS} ms.`)
+    progressBar.style.width = "100%"
+    document.body.style.cursor = "default"
     return res
 }, (error) => {
         error.config.metadata.endTime = new Date().getTime();
@@ -135,14 +138,21 @@ axios.interceptors.response.use(res => {
  *   once or twice per request to this API. This is still a concept worth familiarizing yourself
  *   with for future projects.
  */
+const downloadProgress = await axios.get('https://api.thecatapi.com/v1/images/search', {
+  onDownloadProgress: updateProgress})
+  
 async function updateProgress(progEvt){
+progressBar.style.width = progEvt.progress
 console.log(progEvt)
 }
+
 /**
  * 7. As a final element of progress indication, add the following to your axios interceptors:
  * - In your request interceptor, set the body element's cursor style to "progress."
  * - In your response interceptor, remove the progress cursor style from the body element.
+ * Added.
  */
+
 /**
  * 8. To practice posting data, we'll create a system to "favourite" certain images.
  * - The skeleton of this function has already been created for you.
