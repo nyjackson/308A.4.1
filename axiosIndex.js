@@ -61,10 +61,9 @@ async function getCatPictures(event) {
   let link =
     "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
   let breedType = event.target.value;
-  link += `${breedType}&api_key=${API_KEY}`;
-  let apiLink = await axios(link)
-  console.log("In cat pics"); 
-  console.log(apiLink.data);
+  link += `${breedType}`;
+  let apiLink = await axios(link, {headers: {apiKey:API_KEY}})
+
   const jsonCats = apiLink.data
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i];
@@ -136,7 +135,9 @@ axios.interceptors.response.use(res => {
  *   once or twice per request to this API. This is still a concept worth familiarizing yourself
  *   with for future projects.
  */
+async function updateProgress(progEvt){
 
+}
 /**
  * 7. As a final element of progress indication, add the following to your axios interceptors:
  * - In your request interceptor, set the body element's cursor style to "progress."
