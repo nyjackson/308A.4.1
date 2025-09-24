@@ -4,6 +4,7 @@ import {
   createCarouselItem,
   start,
 } from "./Carousel.js";
+//import axios from "axios";
 
 // The breed selection input element.
 const breedSelect = document.getElementById("breedSelect");
@@ -14,24 +15,23 @@ const progressBar = document.getElementById("progressBar");
 // The get favourites button element.
 const getFavouritesBtn = document.getElementById("getFavouritesBtn");
 
+// Step 0: Store your API key here for reference and easy access.
 const API_KEY =
   "live_OhZHbAsMzJK6UuuMHkxqGT9e9f4F6kgOwpvrWkEdc1lM1Al7dQaXwCwxibzzwpWy";
 
 /**
- * 4. Change all of your fetch() functions to axios!
- * - axios has already been imported for you within index.js.
- * - If you've done everything correctly up to this point, this should be simple.
- * - If it is not simple, take a moment to re-evaluate your original code.
- * - Hint: Axios has the ability to set default headers. Use this to your advantage
- *   by setting a default header with your API key so that you do not have to
- *   send it manually with all of your requests! You can also set a default base URL!
+ * 1. Create an async function "initialLoad" that does the following:
+ * - Retrieve a list of breeds from the cat API using fetch().
+ * - Create new <options> for each of these breeds, and append them to breedSelect.
+ *  - Each option should have a value attribute equal to the id of the breed.
+ *  - Each option should display text equal to the name of the breed.
+ * This function should execute immediately.
  */
 
 async function initialLoad() {
-  const breeds = await axios("/v1/breeds", {
-    baseURL: "https://api.thecatapi.com",
-    headers: { apiKey: API_KEY },
-  });
+  axios.defaults.baseURL = "https://api.thecatapi.com/v1";
+  axios.defaults.headers.common["x-api-key"] = API_KEY;
+  const breeds = await axios("/breeds");
   //console.log(breeds)
   const jsonBreeds = breeds.data;
   for (let i = 0; i < jsonBreeds.length; i++) {
@@ -46,9 +46,7 @@ async function initialLoad() {
 initialLoad();
 
 async function getCatInfo(id) {
-  const breedResponse = await axios("/v1/breeds", {
-    baseURL: "https://api.thecatapi.com",
-    headers: { apiKey: API_KEY },
+  const breedResponse = await axios("/breeds", {
     onDownloadProgress: updateProgress,
   });
   const jsonBreeds = breedResponse.data;
@@ -60,31 +58,6 @@ async function getCatInfo(id) {
   }
 }
 
-async function getCatPictures(event) {
-  clear();
-  //let breedType = event.target.value;
-  //const apiLink = await axios("/v1/images/search?limit=10", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY, breed_ids:breedType}})
-  let link = "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
-  let breedType = event.target.value;
-  link += `${breedType}`;
-  let apiLink = await axios(link, { headers: { apiKey: API_KEY } });
-
-  const jsonCats = apiLink.data;
-  for (let i = 0; i < jsonCats.length; i++) {
-    let catPic = jsonCats[i];
-    const catElt = document.createElement("img");
-    catElt.src = catPic.url;
-    const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
-    appendCarousel(cat);
-  }
-  const jsonInfo = await getCatInfo(breedType);
-  //console.log(jsonInfo)
-  const cat = craftInfoDump(jsonInfo);
-  infoDump.appendChild(cat);
-  start();
-}
-
-breedSelect.addEventListener("change", getCatPictures);
 
 function craftInfoDump(info) {
   while (infoDump.firstChild) {
@@ -100,6 +73,60 @@ function craftInfoDump(info) {
   frag.appendChild(description);
   return frag;
 }
+
+/**
+ * 2. Create an event handler for breedSelect that does the following:
+ * - Retrieve information on the selected breed from the cat API using fetch().
+ *  - Make sure your request is receiving multiple array items!
+ *  - Check the API documentation if you're only getting a single object.
+ * - For each object in the response array, create a new element for the carousel.
+ *  - Append each of these new elements to the carousel.
+ * - Use the other data you have been given to create an informational section within the infoDump element.
+ *  - Be creative with how you create DOM elements and HTML.
+ *  - Feel free to edit index.html and styles.css to suit your needs, but be careful!
+ *  - Remember that functionality comes first, but user experience and design are important.
+ * - Each new selection should clear, re-populate, and restart the Carousel.
+ * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
+ */
+breedSelect.addEventListener("change", getCatPictures);
+
+async function getCatPictures(event) {
+  clear();
+  let breedType = event.target.value;
+  const apiLink = await axios("/images/search", {
+    params: {
+      breed_ids: breedType,
+      limit: 10,
+    },
+  });
+
+  const jsonCats = apiLink.data;
+  for (let i = 0; i < jsonCats.length; i++) {
+    let catPic = jsonCats[i];
+    const catElt = document.createElement("img");
+    catElt.src = catPic.url;
+    const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
+    appendCarousel(cat);
+  }
+  const jsonInfo = await getCatInfo(breedType);
+  //console.log(jsonInfo)
+  const cat = craftInfoDump(jsonInfo);
+  infoDump.appendChild(cat);
+  start();
+}
+/**
+ * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
+ */
+/**
+ *
+ * 4. Change all of your fetch() functions to axios!
+ * - axios has already been imported for you within index.js.
+ * - If you've done everything correctly up to this point, this should be simple.
+ * - If it is not simple, take a moment to re-evaluate your original code.
+ * - Hint: Axios has the ability to set default headers. Use this to your advantage
+ *   by setting a default header with your API key so that you do not have to
+ *   send it manually with all of your requests! You can also set a default base URL!
+ */
 /**
  * 5. Add axios interceptors to log the time between request and response to the console.
  * - Hint: you already have access to code that does this!
@@ -133,7 +160,6 @@ axios.interceptors.response.use(
     throw error;
   }
 );
-
 /**
  * 6. Next, we'll create a progress bar to indicate the request is in progress.
  * - The progressBar element has already been created for you.
@@ -149,9 +175,9 @@ axios.interceptors.response.use(
  *   once or twice per request to this API. This is still a concept worth familiarizing yourself
  *   with for future projects.
  */
-
 async function updateProgress(progEvt) {
-  progressBar.style.width = Math.round((progEvt.loadad * 100)/progEvt.total) || "100%";
+  progressBar.style.width =
+    Math.round((progEvt.loaded * 100) / progEvt.total) || "100%";
   //console.log(progEvt);
 }
 
@@ -159,7 +185,6 @@ async function updateProgress(progEvt) {
  * 7. As a final element of progress indication, add the following to your axios interceptors:
  * - In your request interceptor, set the body element's cursor style to "progress."
  * - In your response interceptor, remove the progress cursor style from the body element.
- * Added.
  */
 
 /**
@@ -175,15 +200,8 @@ async function updateProgress(progEvt) {
  */
 export async function favourite(imgId) {
   // your code here
-  console.log("HERE");
-  console.log(`pic ${imgId} has been favorited.`);
-  await axios
-    .post("https://api.thecatapi.com/v1/favourites", {
-      headers: { "x-api-key": API_KEY, body: imgId },
-    })
-    .then((pic) => console.log(pic.data))
-    .catch((err) => console.log(error));
-  return favPic;
+  let fav = await axios.post("/favourites", { image_id: imgId });
+  console.log(fav);
 }
 
 /**
@@ -195,16 +213,24 @@ export async function favourite(imgId) {
  *    If that isn't in its own function, maybe it should be so you don't have to
  *    repeat yourself in this section.
  */
+getFavouritesBtn.addEventListener("click", getFavorites);
+
 async function getFavorites() {
-  const allFaves = await axios("https://api.thecatapi.com/v1/favourites", {
-    headers: { "x-api-key": API_KEY, user_id: "123" },
-  });
+  const allFaves = await axios("/favourites");
   clear();
   infoDump.innerHTML = "";
-  console.log(allFaves);
-  //iterate and add pic + descrip
+  const jsonCats = allFaves.data;
+  console.log(jsonCats);
+  for (let i = 0; i < jsonCats.length; i++) {
+    let catPic = jsonCats[i];
+    const catElt = document.createElement("img");
+    catElt.src = catPic.url;
+    const cat = createCarouselItem(catElt.src, "", catPic.id);
+    appendCarousel(cat);
+  }
+  start();
+  //iterate and add pic + descrip in carousel
 }
-getFavouritesBtn.addEventListener("click", getFavorites);
 /**
  * 10. Test your site, thoroughly!
  * - What happens when you try to load the Malayan breed?
