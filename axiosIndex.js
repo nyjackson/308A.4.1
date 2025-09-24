@@ -27,24 +27,30 @@ const API_KEY =
  *   send it manually with all of your requests! You can also set a default base URL!
  */
 
-
-async function initialLoad(){
-  const breeds = await axios("/v1/breeds", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY}})
+async function initialLoad() {
+  const breeds = await axios("/v1/breeds", {
+    baseURL: "https://api.thecatapi.com",
+    headers: { apiKey: API_KEY },
+  });
   //console.log(breeds)
-  const jsonBreeds = breeds.data
-  for(let i = 0; i< jsonBreeds.length;i++){
-    const breedType = jsonBreeds[i]
-    const breedOption = document.createElement("option")
-    breedOption.value = breedType.id
-    breedOption.textContent = breedType.name
-    breedSelect.appendChild(breedOption)
+  const jsonBreeds = breeds.data;
+  for (let i = 0; i < jsonBreeds.length; i++) {
+    const breedType = jsonBreeds[i];
+    const breedOption = document.createElement("option");
+    breedOption.value = breedType.id;
+    breedOption.textContent = breedType.name;
+    breedSelect.appendChild(breedOption);
   }
- start()
+  start();
 }
-initialLoad()
+initialLoad();
 
 async function getCatInfo(id) {
-  const breedResponse = await axios("/v1/breeds", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY}})
+  const breedResponse = await axios("/v1/breeds", {
+    baseURL: "https://api.thecatapi.com",
+    headers: { apiKey: API_KEY },
+    onDownloadProgress: updateProgress,
+  });
   const jsonBreeds = breedResponse.data;
   for (let i = 0; i < jsonBreeds.length; i++) {
     const breedType = jsonBreeds[i];
@@ -58,13 +64,12 @@ async function getCatPictures(event) {
   clear();
   //let breedType = event.target.value;
   //const apiLink = await axios("/v1/images/search?limit=10", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY, breed_ids:breedType}})
-  let link =
-    "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
+  let link = "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
   let breedType = event.target.value;
   link += `${breedType}`;
-  let apiLink = await axios(link, {headers: {apiKey:API_KEY}})
+  let apiLink = await axios(link, { headers: { apiKey: API_KEY } });
 
-  const jsonCats = apiLink.data
+  const jsonCats = apiLink.data;
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i];
     const catElt = document.createElement("img");
@@ -73,16 +78,17 @@ async function getCatPictures(event) {
     appendCarousel(cat);
   }
   const jsonInfo = await getCatInfo(breedType);
-  console.log(jsonInfo)
-  const cat = craftInfoDump(jsonInfo)
-  infoDump.appendChild(cat)
+  //console.log(jsonInfo)
+  const cat = craftInfoDump(jsonInfo);
+  infoDump.appendChild(cat);
+  start();
 }
 
 breedSelect.addEventListener("change", getCatPictures);
 
 function craftInfoDump(info) {
-  while(infoDump.firstChild){
-    infoDump.removeChild(infoDump.firstChild)
+  while (infoDump.firstChild) {
+    infoDump.removeChild(infoDump.firstChild);
   }
   const frag = document.createDocumentFragment();
   const h1 = document.createElement("h1");
@@ -100,28 +106,33 @@ function craftInfoDump(info) {
  * - Add a console.log statement to indicate when requests begin.
  * - As an added challenge, try to do this on your own without referencing the lesson material.
  */
-axios.interceptors.request.use(req => {
-    console.log("Request Started")
-    req.metadata = req.metadata || {}
-    req.metadata.startTime = new Date().getTime()
-    progressBar.style.width = "0%"
-    document.body.style.cursor = "progress"
-    return req
+axios.interceptors.request.use((req) => {
+  console.log("Request Started");
+  req.metadata = req.metadata || {};
+  req.metadata.startTime = new Date().getTime();
+  progressBar.style.width = "0%";
+  document.body.style.cursor = "progress";
+  return req;
 });
-axios.interceptors.response.use(res => {
-    console.log("Response Reached")
-    res.config.metadata.endTime = new Date().getTime()
-    res.config.metadata.durationInMS = new Date().getTime() - res.config.metadata.startTime
-    console.log(`The request took ${res.config.metadata.durationInMS} ms.`)
-    progressBar.style.width = "100%"
-    document.body.style.cursor = "default"
-    return res
-}, (error) => {
-        error.config.metadata.endTime = new Date().getTime();
-        error.config.metadata.durationInMS = error.config.metadata.endTime - error.config.metadata.startTime;
-        console.log(`Request took ${error.config.metadata.durationInMS} ms.`)
-        throw error;
-});
+axios.interceptors.response.use(
+  (res) => {
+    console.log("Response Reached");
+    res.config.metadata.endTime = new Date().getTime();
+    res.config.metadata.durationInMS =
+      new Date().getTime() - res.config.metadata.startTime;
+    console.log(`The request took ${res.config.metadata.durationInMS} ms.`);
+    //progressBar.style.width = "100%";
+    document.body.style.cursor = "default";
+    return res;
+  },
+  (error) => {
+    error.config.metadata.endTime = new Date().getTime();
+    error.config.metadata.durationInMS =
+      error.config.metadata.endTime - error.config.metadata.startTime;
+    console.log(`Request took ${error.config.metadata.durationInMS} ms.`);
+    throw error;
+  }
+);
 
 /**
  * 6. Next, we'll create a progress bar to indicate the request is in progress.
@@ -138,12 +149,10 @@ axios.interceptors.response.use(res => {
  *   once or twice per request to this API. This is still a concept worth familiarizing yourself
  *   with for future projects.
  */
-const downloadProgress = await axios.get('https://api.thecatapi.com/v1/images/search', {
-  onDownloadProgress: updateProgress})
-  
-async function updateProgress(progEvt){
-progressBar.style.width = progEvt.progress
-console.log(progEvt)
+
+async function updateProgress(progEvt) {
+  progressBar.style.width = Math.round((progEvt.loadad * 100)/progEvt.total) || "100%";
+  //console.log(progEvt);
 }
 
 /**
@@ -166,6 +175,15 @@ console.log(progEvt)
  */
 export async function favourite(imgId) {
   // your code here
+  console.log("HERE");
+  console.log(`pic ${imgId} has been favorited.`);
+  await axios
+    .post("https://api.thecatapi.com/v1/favourites", {
+      headers: { "x-api-key": API_KEY, body: imgId },
+    })
+    .then((pic) => console.log(pic.data))
+    .catch((err) => console.log(error));
+  return favPic;
 }
 
 /**
@@ -177,7 +195,16 @@ export async function favourite(imgId) {
  *    If that isn't in its own function, maybe it should be so you don't have to
  *    repeat yourself in this section.
  */
-
+async function getFavorites() {
+  const allFaves = await axios("https://api.thecatapi.com/v1/favourites", {
+    headers: { "x-api-key": API_KEY, user_id: "123" },
+  });
+  clear();
+  infoDump.innerHTML = "";
+  console.log(allFaves);
+  //iterate and add pic + descrip
+}
+getFavouritesBtn.addEventListener("click", getFavorites);
 /**
  * 10. Test your site, thoroughly!
  * - What happens when you try to load the Malayan breed?
