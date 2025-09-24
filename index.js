@@ -58,10 +58,13 @@ initialLoad();
  */
 
 function craftInfoDump(info) {
+  while(infoDump.firstChild){
+    infoDump.removeChild(infoDump.firstChild)
+  }
   const frag = document.createDocumentFragment();
   const h1 = document.createElement("h1");
   const description = document.createElement("p");
-
+  console.log(info)
   h1.textContent = info.name;
   description.textContent = info.description;
 
@@ -86,19 +89,21 @@ async function getCatPictures(event) {
     "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
   let breedType = event.target.value;
   apiLink += `${breedType}&api_key=${API_KEY}`;
-  console.log(apiLink);
+  //console.log(apiLink);
   const catPics = await fetch(apiLink);
   const jsonCats = await catPics.json();
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i];
-    console.log(catPic);
+    //console.log(catPic);
     const catElt = document.createElement("img");
     catElt.src = catPic.url;
     const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
     appendCarousel(cat);
   }
-  const catInfo = getCatInfo(breedType);
-  infoDump.appendChild(craftInfoDump(catInfo))
+  const info = getCatInfo(breedType);
+  const jsonInfo = await info
+  const cat = craftInfoDump(jsonInfo)
+  infoDump.appendChild(cat)
 }
 breedSelect.addEventListener("click", getCatPictures);
 
