@@ -222,14 +222,13 @@ async function getFavorites() {
   const jsonCats = allFaves.data;
   console.log(jsonCats);
   for (let i = 0; i < jsonCats.length; i++) {
-    let catPic = jsonCats[i];
+    let catPic = jsonCats[i].image;
     const catElt = document.createElement("img");
     catElt.src = catPic.url;
     const cat = createCarouselItem(catElt.src, "", catPic.id);
     appendCarousel(cat);
   }
   start();
-  //iterate and add pic + descrip in carousel
 }
 /**
  * 10. Test your site, thoroughly!
