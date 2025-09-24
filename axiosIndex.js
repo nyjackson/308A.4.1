@@ -56,9 +56,15 @@ async function getCatInfo(id) {
 
 async function getCatPictures(event) {
   clear();
+  //let breedType = event.target.value;
+  //const apiLink = await axios("/v1/images/search?limit=10", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY, breed_ids:breedType}})
+  let link =
+    "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
   let breedType = event.target.value;
-  const apiLink = await axios("/v1/images/search?limit=10", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY}, breed_ids:breedType})
-//   console.log(apiLink);
+  link += `${breedType}&api_key=${API_KEY}`;
+  let apiLink = await axios(link)
+  console.log("In cat pics"); 
+  console.log(apiLink.data);
   const jsonCats = apiLink.data
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i];
@@ -68,6 +74,7 @@ async function getCatPictures(event) {
     appendCarousel(cat);
   }
   const jsonInfo = await getCatInfo(breedType);
+  console.log(jsonInfo)
   const cat = craftInfoDump(jsonInfo)
   infoDump.appendChild(cat)
 }
@@ -81,7 +88,6 @@ function craftInfoDump(info) {
   const frag = document.createDocumentFragment();
   const h1 = document.createElement("h1");
   const description = document.createElement("p");
-  //console.log(info)
   h1.textContent = info.name;
   description.textContent = info.description;
 
@@ -99,12 +105,13 @@ axios.interceptors.request.use(req => {
     console.log("Request Started")
     req.metadata = req.metadata || {}
     req.metadata.startTime = new Date().getTime()
+    progressBar.style.width = "0%"
     return req
 });
 axios.interceptors.response.use(res => {
     console.log("Response Reached")
     res.config.metadata.endTime = new Date().getTime()
-    res.config.metadata.durationInMS = newDate().getTime() - res.config.metadata.startTime
+    res.config.metadata.durationInMS = new Date().getTime() - res.config.metadata.startTime
     console.log(`The request took ${res.config.metadata.durationInMS} ms.`)
     return res
 }, (error) => {
