@@ -14,13 +14,23 @@ const progressBar = document.getElementById("progressBar");
 // The get favourites button element.
 const getFavouritesBtn = document.getElementById("getFavouritesBtn");
 
-// Step 0: Store your API key here for reference and easy access.
 const API_KEY =
   "live_OhZHbAsMzJK6UuuMHkxqGT9e9f4F6kgOwpvrWkEdc1lM1Al7dQaXwCwxibzzwpWy";
 
+/**
+ * 4. Change all of your fetch() functions to axios!
+ * - axios has already been imported for you within index.js.
+ * - If you've done everything correctly up to this point, this should be simple.
+ * - If it is not simple, take a moment to re-evaluate your original code.
+ * - Hint: Axios has the ability to set default headers. Use this to your advantage
+ *   by setting a default header with your API key so that you do not have to
+ *   send it manually with all of your requests! You can also set a default base URL!
+ */
+
+
 async function initialLoad(){
   const breeds = await axios("/v1/breeds", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY}})
-  console.log(breeds)
+  //console.log(breeds)
   const jsonBreeds = breeds.data
   for(let i = 0; i< jsonBreeds.length;i++){
     const breedType = jsonBreeds[i]
@@ -46,24 +56,18 @@ async function getCatInfo(id) {
 
 async function getCatPictures(event) {
   clear();
-//   let apiLink =
-//     "https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=";
   let breedType = event.target.value;
-//   apiLink += `${breedType}&api_key=${API_KEY}`;
   const apiLink = await axios("/v1/images/search?limit=10", {baseURL: "https://api.thecatapi.com", headers: {apiKey:API_KEY}, breed_ids:breedType})
-
-  console.log(apiLink);
-  const jsonCats = await apiLink.data
+//   console.log(apiLink);
+  const jsonCats = apiLink.data
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i];
-    //console.log(catPic);
     const catElt = document.createElement("img");
     catElt.src = catPic.url;
     const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
     appendCarousel(cat);
   }
-  const info = getCatInfo(breedType);
-  const jsonInfo = await info
+  const jsonInfo = await getCatInfo(breedType);
   const cat = craftInfoDump(jsonInfo)
   infoDump.appendChild(cat)
 }
@@ -77,7 +81,7 @@ function craftInfoDump(info) {
   const frag = document.createDocumentFragment();
   const h1 = document.createElement("h1");
   const description = document.createElement("p");
-  console.log(info)
+  //console.log(info)
   h1.textContent = info.name;
   description.textContent = info.description;
 
@@ -86,21 +90,29 @@ function craftInfoDump(info) {
   return frag;
 }
 /**
- * 4. Change all of your fetch() functions to axios!
- * - axios has already been imported for you within index.js.
- * - If you've done everything correctly up to this point, this should be simple.
- * - If it is not simple, take a moment to re-evaluate your original code.
- * - Hint: Axios has the ability to set default headers. Use this to your advantage
- *   by setting a default header with your API key so that you do not have to
- *   send it manually with all of your requests! You can also set a default base URL!
- */
-
-/**
  * 5. Add axios interceptors to log the time between request and response to the console.
  * - Hint: you already have access to code that does this!
  * - Add a console.log statement to indicate when requests begin.
  * - As an added challenge, try to do this on your own without referencing the lesson material.
  */
+axios.interceptors.request.use(req => {
+    console.log("Request Started")
+    req.metadata = req.metadata || {}
+    req.metadata.startTime = new Date().getTime()
+    return req
+});
+axios.interceptors.response.use(res => {
+    console.log("Response Reached")
+    res.config.metadata.endTime = new Date().getTime()
+    res.config.metadata.durationInMS = newDate().getTime() - res.config.metadata.startTime
+    console.log(`The request took ${res.config.metadata.durationInMS} ms.`)
+    return res
+}, (error) => {
+        error.config.metadata.endTime = new Date().getTime();
+        error.config.metadata.durationInMS = error.config.metadata.endTime - error.config.metadata.startTime;
+        console.log(`Request took ${error.config.metadata.durationInMS} ms.`)
+        throw error;
+});
 
 /**
  * 6. Next, we'll create a progress bar to indicate the request is in progress.
