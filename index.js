@@ -81,7 +81,7 @@ function craftInfoDump(info) {
 breedSelect.addEventListener("change", getCatPictures);
 
 async function getCatInfo(id) {
-  const breedResponse = await axios("/breeds")
+  const breedResponse = await axios("/breeds");
   const jsonBreeds = breedResponse.data;
   for (let i = 0; i < jsonBreeds.length; i++) {
     const breedType = jsonBreeds[i];
@@ -112,9 +112,10 @@ async function getCatPictures(event) {
     const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
     appendCarousel(cat);
   }
-  const rawData = jsonCats.length == 0 ? await getCatInfo(breedType) : jsonCats[0].breeds[0]
+  const rawData =
+    jsonCats.length == 0 ? await getCatInfo(breedType) : jsonCats[0].breeds[0];
   //console.log("raw data",rawData);
-  const cat =  craftInfoDump(rawData);
+  const cat = craftInfoDump(rawData);
   infoDump.appendChild(cat);
   start();
 }
@@ -272,13 +273,21 @@ async function updateProgress(progEvt) {
 export async function favourite(imgId) {
   const allFaves = await axios("/favourites");
   const jsonCats = allFaves.data;
+  let favoritedPic = null;
   for (let i = 0; i < jsonCats.length; i++) {
     if (jsonCats[i].image_id == imgId) {
-      let del = await axios.delete(`/favourites/${jsonCats[i].id}`);
+      favoritedPic = jsonCats[i];
+      break;
     }
   }
-  let fav = await axios.post("/favourites", { image_id: imgId });
-  console.log(fav);
+
+  if (favoritedPic) {
+    let del = await axios.delete(`/favourites/${favoritedPic.id}`);
+    //console.log(del);
+  } else {
+    let fav = await axios.post("/favourites", { image_id: imgId });
+    //console.log(fav);
+  }
 }
 
 /**
