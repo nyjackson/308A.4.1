@@ -80,6 +80,18 @@ function craftInfoDump(info) {
  */
 breedSelect.addEventListener("change", getCatPictures);
 
+async function getCatInfo(id) {
+  const breedResponse = await axios("/breeds")
+  const jsonBreeds = breedResponse.data;
+  for (let i = 0; i < jsonBreeds.length; i++) {
+    const breedType = jsonBreeds[i];
+    if (id == breedType.id) {
+      console.log(breedType)
+      return breedType;
+    }
+  }
+}
+
 async function getCatPictures(event) {
   clear();
   let breedType = event.target.value;
@@ -94,15 +106,15 @@ async function getCatPictures(event) {
   const jsonCats = apiLink.data;
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i];
-    console.log(catPic);
+    //console.log(catPic);
     const catElt = document.createElement("img");
     catElt.src = catPic.url;
     const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
     appendCarousel(cat);
   }
-  const rawData = jsonCats[0].breeds[0];
-  console.log(rawData);
-  const cat = craftInfoDump(rawData);
+  const rawData = jsonCats.length == 0 ? await getCatInfo(breedType) : jsonCats[0].breeds[0]
+  //console.log("raw data",rawData);
+  const cat =  craftInfoDump(rawData);
   infoDump.appendChild(cat);
   start();
 }
