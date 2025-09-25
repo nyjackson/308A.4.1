@@ -31,17 +31,23 @@ const API_KEY =
 async function initialLoad() {
   axios.defaults.baseURL = "https://api.thecatapi.com/v1";
   axios.defaults.headers.common["x-api-key"] = API_KEY;
-  const rawData = await axios("/breeds");
-  //console.log(breeds)
-  const breeds = rawData.data;
-  for (let i = 0; i < breeds.length; i++) {
-    const breedType = breeds[i];
-    const option = document.createElement("option");
-    option.value = breedType.id;
-    option.textContent = breedType.name;
-    breedSelect.appendChild(option);
+  try {
+    const rawData = await axios("/breeds");
+    //console.log(breeds)
+    const breeds = rawData.data;
+    for (let i = 0; i < breeds.length; i++) {
+      const breedType = breeds[i];
+      const option = document.createElement("option");
+      option.value = breedType.id;
+      option.textContent = breedType.name;
+      breedSelect.appendChild(option);
+    }
+    start();
+    breedSelect.value = breeds[0].id;
+    getCatPictures({ target: { value: breeds[0].id } });
+  } catch (e) {
+    console.log(e);
   }
-  start();
 }
 
 initialLoad();
@@ -81,43 +87,53 @@ function craftInfoDump(info) {
 breedSelect.addEventListener("change", getCatPictures);
 
 async function getCatInfo(id) {
-  const breedResponse = await axios("/breeds");
-  const jsonBreeds = breedResponse.data;
-  for (let i = 0; i < jsonBreeds.length; i++) {
-    const breedType = jsonBreeds[i];
-    if (id == breedType.id) {
-      //console.log(breedType)
-      return breedType;
+  try {
+    const breedResponse = await axios("/breeds");
+    const jsonBreeds = breedResponse.data;
+    for (let i = 0; i < jsonBreeds.length; i++) {
+      const breedType = jsonBreeds[i];
+      if (id == breedType.id) {
+        //console.log(breedType)
+        return breedType;
+      }
     }
+  } catch (e) {
+    console.log(e);
   }
 }
 
 async function getCatPictures(event) {
   clear();
   let breedType = event.target.value;
-  const apiLink = await axios("/images/search", {
-    params: {
-      breed_ids: breedType,
-      limit: 10,
-    },
-    onDownloadProgress: updateProgress,
-  });
+  try {
+    const apiLink = await axios("/images/search", {
+      params: {
+        breed_ids: breedType,
+        limit: 10,
+      },
+      onDownloadProgress: updateProgress,
+    });
 
-  const jsonCats = apiLink.data;
-  for (let i = 0; i < jsonCats.length; i++) {
-    let catPic = jsonCats[i];
-    //console.log(catPic);
-    const catElt = document.createElement("img");
-    catElt.src = catPic.url;
-    const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
-    appendCarousel(cat);
+    const jsonCats = apiLink.data;
+    for (let i = 0; i < jsonCats.length; i++) {
+      let catPic = jsonCats[i];
+      //console.log(catPic);
+      const catElt = document.createElement("img");
+      catElt.src = catPic.url;
+      const cat = createCarouselItem(catElt.src, breedType.id, catPic.id);
+      appendCarousel(cat);
+    }
+    const rawData =
+      jsonCats.length == 0
+        ? await getCatInfo(breedType)
+        : jsonCats[0].breeds[0];
+    //console.log("raw data",rawData);
+    const cat = craftInfoDump(rawData);
+    infoDump.appendChild(cat);
+    start();
+  } catch (e) {
+    console.log(e);
   }
-  const rawData =
-    jsonCats.length == 0 ? await getCatInfo(breedType) : jsonCats[0].breeds[0];
-  //console.log("raw data",rawData);
-  const cat = craftInfoDump(rawData);
-  infoDump.appendChild(cat);
-  start();
 }
 /**
  * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
@@ -271,22 +287,26 @@ async function updateProgress(progEvt) {
  * - You can call this function by clicking on the heart at the top right of any image.
  */
 export async function favourite(imgId) {
-  const allFaves = await axios("/favourites");
-  const jsonCats = allFaves.data;
-  let favoritedPic = null;
-  for (let i = 0; i < jsonCats.length; i++) {
-    if (jsonCats[i].image_id == imgId) {
-      favoritedPic = jsonCats[i];
-      break;
+  try {
+    const allFaves = await axios("/favourites");
+    const jsonCats = allFaves.data;
+    let favoritedPic = null;
+    for (let i = 0; i < jsonCats.length; i++) {
+      if (jsonCats[i].image_id == imgId) {
+        favoritedPic = jsonCats[i];
+        break;
+      }
     }
-  }
 
-  if (favoritedPic) {
-    let del = await axios.delete(`/favourites/${favoritedPic.id}`);
-    //console.log(del);
-  } else {
-    let fav = await axios.post("/favourites", { image_id: imgId });
-    //console.log(fav);
+    if (favoritedPic) {
+      let del = await axios.delete(`/favourites/${favoritedPic.id}`);
+      //console.log(del);
+    } else {
+      let fav = await axios.post("/favourites", { image_id: imgId });
+      //console.log(fav);
+    }
+  } catch (e) {
+    console.log(e);
   }
 }
 
@@ -302,27 +322,35 @@ export async function favourite(imgId) {
 getFavouritesBtn.addEventListener("click", getFavourites);
 
 async function getFavourites() {
-  const allFaves = await axios("/favourites");
-  clear();
-  infoDump.innerHTML = "";
-  const jsonCats = allFaves.data;
-  //console.log(jsonCats);
-  for (let i = 0; i < jsonCats.length; i++) {
-    let catPic = jsonCats[i].image;
-    const catElt = document.createElement("img");
-    catElt.src = catPic.url;
-    const cat = createCarouselItem(catElt.src, "", catPic.id);
-    appendCarousel(cat);
+  try {
+    const allFaves = await axios("/favourites");
+    clear();
+    infoDump.innerHTML = "";
+    const jsonCats = allFaves.data;
+    //console.log(jsonCats);
+    for (let i = 0; i < jsonCats.length; i++) {
+      let catPic = jsonCats[i].image;
+      const catElt = document.createElement("img");
+      catElt.src = catPic.url;
+      const cat = createCarouselItem(catElt.src, "", catPic.id);
+      appendCarousel(cat);
+    }
+    start();
+  } catch (e) {
+    console.log(e);
   }
-  start();
 }
 
 async function clearFavorites() {
-  const allFaves = await axios("/favourites");
-  const jsonCats = allFaves.data;
-  for (let i = 0; i < jsonCats.length; i++) {
-    //console.log(jsonCats[i]);
-    await axios.delete(`/favourites/${jsonCats[i].id}`);
+  try {
+    const allFaves = await axios("/favourites");
+    const jsonCats = allFaves.data;
+    for (let i = 0; i < jsonCats.length; i++) {
+      //console.log(jsonCats[i]);
+      await axios.delete(`/favourites/${jsonCats[i].id}`);
+    }
+  } catch (e) {
+    console.log(e);
   }
 }
 //clearFavorites()
