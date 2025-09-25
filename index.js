@@ -86,7 +86,7 @@ async function getCatInfo(id) {
   for (let i = 0; i < jsonBreeds.length; i++) {
     const breedType = jsonBreeds[i];
     if (id == breedType.id) {
-      console.log(breedType)
+      //console.log(breedType)
       return breedType;
     }
   }
@@ -120,6 +120,19 @@ async function getCatPictures(event) {
 }
 /**
  * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
+ */
+/**
+ *
+ * 4. Change all of your fetch() functions to axios!
+ * - axios has already been imported for you within index.js.
+ * - If you've done everything correctly up to this point, this should be simple.
+ * - If it is not simple, take a moment to re-evaluate your original code.
+ * - Hint: Axios has the ability to set default headers. Use this to your advantage
+ *   by setting a default header with your API key so that you do not have to
+ *   send it manually with all of your requests! You can also set a default base URL!
+ */
+
+/*** Fetch Code. 
  * async function initialLoad() {
   const breedResponse = await fetch("https://api.thecatapi.com/v1/breeds");
   const jsonBreeds = await breedResponse.json();
@@ -181,23 +194,15 @@ async function getCatPictures(event) {
   const cat = craftInfoDump(jsonInfo)
   infoDump.appendChild(cat)
 }
- */
-/**
- *
- * 4. Change all of your fetch() functions to axios!
- * - axios has already been imported for you within index.js.
- * - If you've done everything correctly up to this point, this should be simple.
- * - If it is not simple, take a moment to re-evaluate your original code.
- * - Hint: Axios has the ability to set default headers. Use this to your advantage
- *   by setting a default header with your API key so that you do not have to
- *   send it manually with all of your requests! You can also set a default base URL!
- */
+ **/
+
 /**
  * 5. Add axios interceptors to log the time between request and response to the console.
  * - Hint: you already have access to code that does this!
  * - Add a console.log statement to indicate when requests begin.
  * - As an added challenge, try to do this on your own without referencing the lesson material.
  */
+
 axios.interceptors.request.use((req) => {
   console.log("Request Started");
   req.metadata = req.metadata || {};
@@ -224,6 +229,7 @@ axios.interceptors.response.use(
     throw error;
   }
 );
+
 /**
  * 6. Next, we'll create a progress bar to indicate the request is in progress.
  * - The progressBar element has already been created for you.
@@ -239,6 +245,7 @@ axios.interceptors.response.use(
  *   once or twice per request to this API. This is still a concept worth familiarizing yourself
  *   with for future projects.
  */
+
 async function updateProgress(progEvt) {
   progressBar.style.width =
     Math.round((progEvt.loaded * 100) / progEvt.total) || "100%";
@@ -290,7 +297,7 @@ async function getFavourites() {
   clear();
   infoDump.innerHTML = "";
   const jsonCats = allFaves.data;
-  console.log(jsonCats);
+  //console.log(jsonCats);
   for (let i = 0; i < jsonCats.length; i++) {
     let catPic = jsonCats[i].image;
     const catElt = document.createElement("img");
